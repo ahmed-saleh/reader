@@ -43,12 +43,12 @@ func collect(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func printer() {
+func printer(w http.ResponseWriter, r *http.Request) {
 
 	file, _ := json.MarshalIndent(messages, "", " ")
  
 	if err := ioutil.WriteFile("test.json", file, 0644); err != nil {
-		fmt.Errorf("failed to write into file")
+		fmt.Printf("failed to write into file")
 	} else {
 		//consume
 		messages = []Body{}
