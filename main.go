@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
+//	"strings"
 )
 
 type Body struct {
@@ -13,10 +15,20 @@ type Body struct {
 	Description string `json:"description"`
 	Event_type string `json:"event_type"`
 	Origin string`json:"origin"`
-	Timestamp int64`json:"timestamp"`
+	Timestamp time.Time`json:"timestamp"`
 	Result string`json:"result"`
 }
 
+/*
+func (b *Body) UnmarshalJSON(buf []byte) error {
+	tt, err := time.Parse(time.RFC1123, strings.Trim(string(buf), `"`))
+	if err != nil {
+		return err
+	}
+	b.Timestamp = tt
+	return nil
+}
+*/
 var messages = []Body {}
 
 func Parse(s []byte) Body {
@@ -34,9 +46,10 @@ func collect(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		var data = Parse(body)
-		messages = append(messages, data)
 
+		var data = Parse(body)
+		fmt.Println(data, time.Now().UTC())
+		messages = append(messages, data)
 
 	default:
 		fmt.Fprintf(w, "Sorry, only POST method is supported.")
@@ -45,10 +58,12 @@ func collect(w http.ResponseWriter, r *http.Request) {
 
 func printer(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("printing ....")
 	file, _ := json.MarshalIndent(messages, "", " ")
+	filename, _ := time.Now().UTC().MarshalText()
  
-	if err := ioutil.WriteFile("test.json", file, 0644); err != nil {
-		fmt.Printf("failed to write into file")
+	if err := ioutil.WriteFile("output/report "+ string(filename) + ".json", file, 0644); err != nil {
+		fmt.Println("failed to write into file")
 	} else {
 		//consume
 		messages = []Body{}
